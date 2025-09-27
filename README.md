@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚀 Frontline Worker AI System
 
 [![Deploy Status](https://img.shields.io/badge/deploy-active-brightgreen)](https://us-central1-frontline-ai-hackathon.cloudfunctions.net/frontline-ai)
@@ -482,3 +483,6 @@ For support and questions:
 ---
 
 **Built with ❤️ for Pakistan's Frontline Workers**
+=======
+# frontline-ai-hackathon
+>>>>>>> 129a5e069bca4415b05a2b8677999c3d599ad2c9
