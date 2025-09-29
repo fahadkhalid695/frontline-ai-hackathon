@@ -84,20 +84,58 @@ frontline-ai-system/
 
 ## 🚀 Quick Start
 
-### Health Check
-Test if the system is running:
+### 🏠 Local Development (Recommended)
+
+#### Option 1: One-Command Setup
+```bash
+# Windows
+start-local.bat
+
+# Linux/Mac
+chmod +x start-local.sh
+./start-local.sh
+```
+
+#### Option 2: Docker Setup
+```bash
+chmod +x start-docker.sh
+./start-docker.sh
+```
+
+#### Option 3: Manual Setup
+```bash
+# Backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements-local.txt
+python app.py
+
+# Frontend (new terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+**Access Points:**
+- 🎨 **Beautiful UI**: http://localhost:3000
+- 🔧 **Backend API**: http://localhost:5000
+- ❤️ **Health Check**: http://localhost:5000/health
+
+### 🌐 Cloud Testing
+
+#### Health Check
 ```bash
 curl "https://us-central1-frontline-ai-hackathon.cloudfunctions.net/frontline-ai/health"
 ```
 
-### Simple Triage Test
+#### Simple Triage Test
 ```bash
 curl -X POST https://us-central1-frontline-ai-hackathon.cloudfunctions.net/frontline-ai \
   -H "Content-Type: application/json" \
   -d '{"action":"triage","case_data":{"symptoms":"fever"}}'
 ```
 
-### Complete Workflow Test
+#### Complete Workflow Test
 ```bash
 curl -X POST https://us-central1-frontline-ai-hackathon.cloudfunctions.net/frontline-ai \
   -H "Content-Type: application/json" \
@@ -455,9 +493,28 @@ gcloud functions deploy frontline-ai \
 
 ## 🧪 Local Testing
 
-Run the comprehensive test suite:
+### Verify Setup
+```bash
+python verify-setup.py
+```
+
+### Test Complete System
 ```bash
 python test_system.py
+```
+
+### Test Individual Components
+```bash
+# Test backend health
+curl http://localhost:5000/health
+
+# Test all agents
+curl http://localhost:5000/api/test-agents
+
+# Test emergency workflow
+curl -X POST http://localhost:5000/api/emergency \
+  -H "Content-Type: application/json" \
+  -d '{"action":"full_workflow","case_data":{"symptoms":"chest pain","emergency_type":"medical","location":"Lahore","citizen_data":{"name":"Test","age":30,"phone":"+923001234567"}}}'
 ```
 
 ## 🤝 Contributing

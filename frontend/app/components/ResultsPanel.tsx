@@ -1,0 +1,403 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import { 
+  CheckCircle, 
+  MapPin, 
+  Clock, 
+  Phone, 
+  Calendar, 
+  FileText, 
+  AlertTriangle,
+  Heart,
+  Shield,
+  Flame,
+  User,
+  Bell,
+  ExternalLink,
+  RefreshCw,
+  Download,
+  Share2
+} from 'lucide-react'
+
+interface ResultsPanelProps {
+  results: any
+  emergencyData: any
+  onReset: () => void
+}
+
+export default function ResultsPanel({ results, emergencyData, onReset }: ResultsPanelProps) {
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'text-red-600 bg-red-50 border-red-200'
+      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200'
+      case 'low': return 'text-green-600 bg-green-50 border-green-200'
+      default: return 'text-gray-600 bg-gray-50 border-gray-200'
+    }
+  }
+
+  const getEmergencyIcon = (type: string) => {
+    switch (type) {
+      case 'medical': return Heart
+      case 'police': return Shield
+      case 'fire': return Flame
+      default: return AlertTriangle
+    }
+  }
+
+  const formatDateTime = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch {
+      return dateString
+    }
+  }
+
+  const EmergencyIcon = getEmergencyIcon(emergencyData?.emergency_type)
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Success Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-8 text-white text-center"
+      >
+        <CheckCircle className="h-16 w-16 mx-auto mb-4" />
+        <h1 className="text-3xl font-bold mb-2">Emergency Request Processed Successfully!</h1>
+        <p className="text-green-100">
+          Your request has been processed by our AI agents. Here are your results and next steps.
+        </p>
+      </motion.div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Results */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Priority Assessment */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-xl shadow-lg p-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                <EmergencyIcon className="h-6 w-6 mr-2" />
+                Priority Assessment
+              </h2>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPriorityColor(results.result?.priority)}`}>
+                {results.result?.priority?.toUpperCase()} PRIORITY
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600">Urgency Level</label>
+                <p className="text-lg font-semibold text-gray-900 capitalize">
+                  {results.result?.urgency?.replace('_', ' ')}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">Assessment Method</label>
+                <p className="text-lg font-semibold text-gray-900 capitalize">
+                  {results.result?.assessment_method?.replace('_', ' ')}
+                </p>
+              </div>
+            </div>
+
+            {results.result?.risk_factors && (
+              <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
+                <label className="text-sm font-medium text-yellow-800">Risk Factors</label>
+                <p className="text-yellow-700 capitalize">{results.result.risk_factors} risk level identified</p>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Service Recommendation */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-xl shadow-lg p-6"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+              <MapPin className="h-6 w-6 mr-2" />
+              Recommended Service
+            </h2>
+            
+            <div className="bg-blue-50 rounded-lg p-4 mb-4">
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                {results.result?.recommended_service?.name || results.result?.recommended_service}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-blue-800">Type:</span>
+                  <span className="ml-2 text-blue-700">
+                    {results.result?.recommended_service?.type || results.result?.service_type}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-medium text-blue-800">Contact:</span>
+                  <span className="ml-2 text-blue-700">
+                    {results.result?.contact_information || results.result?.recommended_service?.emergency_contact || 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {results.result?.instructions && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Instructions</h4>
+                <p className="text-gray-700">{results.result.instructions}</p>
+              </div>
+            )}
+
+            {results.result?.estimated_response_time && (
+              <div className="mt-4 flex items-center text-sm text-gray-600">
+                <Clock className="h-4 w-4 mr-2" />
+                <span>Estimated response time: {results.result.estimated_response_time}</span>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Appointment Details */}
+          {results.result?.appointment_details && (
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white rounded-xl shadow-lg p-6"
+            >
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                <Calendar className="h-6 w-6 mr-2" />
+                Appointment Scheduled
+              </h2>
+              
+              <div className="bg-green-50 rounded-lg p-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-green-800">Appointment ID</label>
+                    <p className="text-lg font-mono text-green-900">
+                      {results.result.appointment_details.appointment_id}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-green-800">Date & Time</label>
+                    <p className="text-lg font-semibold text-green-900">
+                      {formatDateTime(results.result.appointment_details.appointment_time)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-green-800">Duration</label>
+                    <p className="text-lg text-green-900">
+                      {results.result.appointment_details.duration_minutes} minutes
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-green-800">Type</label>
+                    <p className="text-lg text-green-900">
+                      {results.result.appointment_details.slot_type}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {results.result.appointment_details.instructions && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">Appointment Instructions</h4>
+                  <p className="text-gray-700">{results.result.appointment_details.instructions}</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Confirmation Details */}
+          {results.result?.confirmation_details && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white rounded-xl shadow-lg p-6"
+            >
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Confirmation
+              </h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Confirmation Number</label>
+                  <p className="text-lg font-mono font-bold text-primary-600">
+                    {results.result.confirmation_details.confirmation_number}
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Confirmed At</label>
+                  <p className="text-sm text-gray-900">
+                    {formatDateTime(results.result.confirmation_details.confirmation_time)}
+                  </p>
+                </div>
+
+                {results.result.confirmation_details.important_notes && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-sm text-yellow-800">
+                      {results.result.confirmation_details.important_notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Follow-up Information */}
+          {results.result?.reminder_schedule && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white rounded-xl shadow-lg p-6"
+            >
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <Bell className="h-5 w-5 mr-2" />
+                Follow-up & Reminders
+              </h3>
+              
+              <div className="space-y-3">
+                {results.result.reminder_schedule.slice(0, 3).map((reminder: any, index: number) => (
+                  <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <Clock className="h-4 w-4 text-gray-500 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 capitalize">
+                        {reminder.type?.replace('_', ' ')}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {formatDateTime(reminder.scheduled_time)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                
+                {results.result.reminder_schedule.length > 3 && (
+                  <p className="text-sm text-gray-600 text-center">
+                    +{results.result.reminder_schedule.length - 3} more reminders scheduled
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Tracking Information */}
+          {results.result?.tracking_system && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-white rounded-xl shadow-lg p-6"
+            >
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <ExternalLink className="h-5 w-5 mr-2" />
+                Case Tracking
+              </h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Tracking ID</label>
+                  <p className="text-sm font-mono text-gray-900">
+                    {results.result.tracking_system.tracking_id}
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Current Status</label>
+                  <p className="text-sm text-gray-900 capitalize">
+                    {results.result.tracking_system.status?.replace('_', ' ')}
+                  </p>
+                </div>
+
+                {results.result.tracking_system.support_contact && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Support Contact</label>
+                    <p className="text-sm text-gray-900">
+                      {results.result.tracking_system.support_contact}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Actions */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.7 }}
+            className="bg-white rounded-xl shadow-lg p-6"
+          >
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
+            
+            <div className="space-y-3">
+              <button
+                onClick={onReset}
+                className="w-full flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                New Emergency Request
+              </button>
+              
+              <button className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <Download className="h-4 w-4 mr-2" />
+                Download Summary
+              </button>
+              
+              <button className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share Details
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Agent Trace */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+        className="bg-white rounded-xl shadow-lg p-6"
+      >
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Processing Summary</h3>
+        
+        <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <span>Processed by agents:</span>
+          {results.result?.agent_trace?.map((agent: string, index: number) => (
+            <span key={index} className="inline-flex items-center">
+              <span className="px-2 py-1 bg-primary-100 text-primary-800 rounded-full text-xs font-medium">
+                {agent.replace('_', ' ')}
+              </span>
+              {index < results.result.agent_trace.length - 1 && (
+                <span className="mx-1">→</span>
+              )}
+            </span>
+          ))}
+        </div>
+        
+        <div className="mt-4 text-xs text-gray-500">
+          <p>System Mode: {results.system_mode}</p>
+          <p>Processed at: {formatDateTime(results.timestamp)}</p>
+          <p>Citizen ID: {results.citizen_id}</p>
+        </div>
+      </motion.div>
+    </div>
+  )
+}

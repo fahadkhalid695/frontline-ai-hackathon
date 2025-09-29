@@ -2,10 +2,21 @@
 Data loader for integrating mock datasets
 """
 import json
-import pandas as pd
 import logging
 import os
-from PyPDF2 import PdfReader
+
+# Optional imports with fallbacks
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+
+try:
+    from PyPDF2 import PdfReader
+    PYPDF2_AVAILABLE = True
+except ImportError:
+    PYPDF2_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +73,16 @@ class DataLoader:
     def load_location_data(self):
         """Load Pakistan location data"""
         try:
-            if os.path.exists('data/pakistan.csv'):
+            if os.path.exists('data/pakistan.csv') and PANDAS_AVAILABLE:
+                import pandas as pd
                 df = pd.read_csv('data/pakistan.csv')
                 return df.to_dict('records')
+            elif os.path.exists('data/pakistan.csv'):
+                # Fallback CSV reading without pandas
+                import csv
+                with open('data/pakistan.csv', 'r') as f:
+                    reader = csv.DictReader(f)
+                    return list(reader)
             else:
                 return self.generate_mock_location_data()
         except Exception as e:
@@ -93,7 +111,12 @@ class DataLoader:
     
     def extract_hospital_data_from_pdf(self):
         """Extract hospital data from PDF"""
+        if not PYPDF2_AVAILABLE:
+            logger.warning("⚠️ PyPDF2 not available, using mock hospital data")
+            return self.generate_mock_hospital_data()
+            
         try:
+            from PyPDF2 import PdfReader
             with open('data/hospitals.pdf', 'rb') as file:
                 reader = PdfReader(file)
                 text = ""
@@ -112,7 +135,8 @@ class DataLoader:
                         })
                 
                 return hospitals if hospitals else self.generate_mock_hospital_data()
-        except:
+        except Exception as e:
+            logger.warning(f"⚠️ PDF extraction failed: {str(e)}")
             return self.generate_mock_hospital_data()
     
     # Mock data generators

@@ -1,0 +1,11 @@
+city,province,emergency_services,population,hospitals,police_stations
+Lahore,Punjab,15,11126285,25,18
+Karachi,Sindh,20,14910352,30,25
+Islamabad,Federal,10,1014825,12,8
+Rawalpindi,Punjab,8,2098231,15,12
+Faisalabad,Punjab,12,3203846,18,15
+Multan,Punjab,10,1871843,14,10
+Peshawar,Khyber Pakhtunkhwa,8,1970042,12,9
+Quetta,Balochistan,6,1001205,8,7
+Sialkot,Punjab,7,655852,10,8
+Gujranwala,Punjab,9,2027001,12,10
