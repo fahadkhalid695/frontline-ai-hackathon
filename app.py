@@ -14,6 +14,7 @@ from agents.triage_agent import TriageAgent
 from agents.guidance_agent import GuidanceAgent
 from agents.booking_agent import BookingAgent
 from agents.followup_agent import FollowupAgent
+from agents.equity_agent import EquityAgent
 from utils.data_loader import DataLoader
 from utils.degraded_mode import SystemStatusChecker
 
@@ -165,6 +166,14 @@ def execute_full_workflow(case_data, system_status):
         results['followup'] = followup_result
         agent_trace.append('followup_agent')
         
+        # 5. Equity Oversight Agent
+        logger.info("Starting Equity Oversight Agent...")
+        equity_data = {**followup_data, **followup_result}
+        equity_agent = EquityAgent(data_loader)
+        equity_result = equity_agent.process(equity_data, system_status)
+        results['equity'] = equity_result
+        agent_trace.append('equity_agent')
+        
         # Combine all results
         combined_result = {}
         for stage_result in results.values():
@@ -239,6 +248,14 @@ def test_agents():
             agents_status['followup'] = {'status': 'working', 'result': followup_result}
         except Exception as e:
             agents_status['followup'] = {'status': 'error', 'error': str(e)}
+        
+        # Test Equity Agent
+        try:
+            equity_agent = EquityAgent(data_loader)
+            equity_result = equity_agent.process({**test_case, 'priority': 'high'}, system_status)
+            agents_status['equity'] = {'status': 'working', 'result': equity_result}
+        except Exception as e:
+            agents_status['equity'] = {'status': 'error', 'error': str(e)}
         
         return jsonify({
             'status': 'success',

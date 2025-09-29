@@ -12,6 +12,7 @@ from agents.triage_agent import TriageAgent
 from agents.guidance_agent import GuidanceAgent
 from agents.booking_agent import BookingAgent
 from agents.followup_agent import FollowupAgent
+from agents.equity_agent import EquityAgent
 from utils.data_loader import DataLoader
 from utils.degraded_mode import SystemStatusChecker
 
@@ -139,6 +140,13 @@ def execute_full_workflow(case_data, system_status):
     followup_result = followup_agent.process(followup_data, system_status)
     results['followup'] = followup_result
     agent_trace.append('followup_agent')
+    
+    # 5. Equity Oversight Agent
+    equity_data = {**followup_data, **followup_result}
+    equity_agent = EquityAgent(data_loader)
+    equity_result = equity_agent.process(equity_data, system_status)
+    results['equity'] = equity_result
+    agent_trace.append('equity_agent')
     
     # Combine all results
     combined_result = {}
