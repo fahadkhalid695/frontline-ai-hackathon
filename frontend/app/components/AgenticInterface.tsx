@@ -45,6 +45,7 @@ export default function AgenticInterface({ onEmergencyProcessed }: AgenticInterf
   const [isListening, setIsListening] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [currentStep, setCurrentStep] = useState<string>('')
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number, address?: string} | null>(null)
   
   const recognitionRef = useRef<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -78,6 +79,64 @@ export default function AgenticInterface({ onEmergencyProcessed }: AgenticInterf
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    // Get user's location on component mount
+    getCurrentLocation()
+  }, [])
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords
+          setUserLocation({ lat: latitude, lng: longitude })
+          
+          // Try to get address from coordinates
+          try {
+            const address = await reverseGeocode(latitude, longitude)
+            setUserLocation(prev => ({ ...prev!, address }))
+            
+            addMessage({
+              type: 'system',
+              content: `📍 Location detected: ${address}. This will be shared with emergency services if needed.`
+            })
+          } catch (error) {
+            addMessage({
+              type: 'system',
+              content: `📍 Location detected (${latitude.toFixed(4)}, ${longitude.toFixed(4)}). This will be shared with emergency services if needed.`
+            })
+          }
+        },
+        (error) => {
+          console.warn('Location access denied:', error)
+          addMessage({
+            type: 'system',
+            content: "📍 Location access not available. You may need to provide your location manually if needed."
+          })
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+      )
+    }
+  }
+
+  const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+    // Using a free geocoding service (you might want to use Google Maps API in production)
+    try {
+      const response = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+      )
+      const data = await response.json()
+      
+      if (data.locality && data.countryName) {
+        return `${data.locality}, ${data.principalSubdivision}, ${data.countryName}`
+      } else {
+        return `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+      }
+    } catch (error) {
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+    }
+  }
 
   const addMessage = (message: Omit<Message, 'id' | 'timestamp'>) => {
     const newMessage: Message = {
@@ -121,11 +180,14 @@ export default function AgenticInterface({ onEmergencyProcessed }: AgenticInterf
       
       setCurrentStep('Analyzing emergency situation...')
       
-      // Call the intelligent parsing endpoint
+      // Call the intelligent parsing endpoint with location data
       const parseResponse = await fetch('http://localhost:5000/api/parse-emergency', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_input: userInput })
+        body: JSON.stringify({ 
+          user_input: userInput,
+          location_data: userLocation 
+        })
       })
       
       if (!parseResponse.ok) throw new Error('Failed to parse emergency')
@@ -290,9 +352,46 @@ export default function AgenticInterface({ onEmergencyProcessed }: AgenticInterf
 
   const handleActionClick = (metadata: any) => {
     if (metadata.action === 'call' || metadata.action === 'emergency_call') {
-      // In a real app, this would initiate a call
-      toast.success(`Calling ${metadata.number}...`)
-      // window.open(`tel:${metadata.number}`) // Uncomment for real phone calls
+      // Real phone call implementation
+      const phoneNumber = metadata.number
+      
+      // Show confirmation dialog for emergency calls
+      if (metadata.action === 'emergency_call') {
+        const confirmed = window.confirm(
+          `This will call emergency services (${phoneNumber}). Are you sure you want to proceed?`
+        )
+        if (!confirmed) return
+      }
+      
+      try {
+        // Attempt to make the call
+        window.open(`tel:${phoneNumber}`)
+        toast.success(`Calling ${phoneNumber}...`)
+        
+        // Log the call attempt
+        addMessage({
+          type: 'system',
+          content: `📞 Call initiated to ${phoneNumber}. If the call doesn't start automatically, please dial ${phoneNumber} manually.`
+        })
+        
+        // For emergency calls, also show additional guidance
+        if (metadata.action === 'emergency_call') {
+          setTimeout(() => {
+            addMessage({
+              type: 'agent',
+              content: "While waiting for emergency services, stay calm and follow any instructions they give you. Keep your phone nearby for updates."
+            })
+          }, 2000)
+        }
+        
+      } catch (error) {
+        toast.error(`Unable to make call automatically. Please dial ${phoneNumber} manually.`)
+        addMessage({
+          type: 'system',
+          content: `⚠️ Automatic calling failed. Please manually dial: ${phoneNumber}`
+        })
+      }
+      
     } else if (metadata.action === 'send_sms') {
       toast.success('SMS sent with appointment details!')
     }

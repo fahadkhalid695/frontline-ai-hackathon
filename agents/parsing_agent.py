@@ -10,49 +10,120 @@ logger = logging.getLogger(__name__)
 
 class ParsingAgent:
     def __init__(self):
+        # Enhanced medical keywords with more comprehensive training data
         self.medical_keywords = {
             'high_priority': [
-                'chest pain', 'heart attack', 'stroke', 'unconscious', 'not breathing',
-                'severe bleeding', 'overdose', 'suicide', 'cardiac arrest', 'choking',
-                'severe burn', 'head injury', 'spinal injury', 'allergic reaction',
-                'difficulty breathing', 'can\'t breathe', 'shortness of breath'
+                # Cardiac emergencies
+                'chest pain', 'heart attack', 'cardiac arrest', 'heart palpitations', 'chest tightness',
+                'crushing chest pain', 'radiating pain', 'left arm pain', 'jaw pain',
+                
+                # Respiratory emergencies  
+                'difficulty breathing', 'can\'t breathe', 'shortness of breath', 'not breathing',
+                'choking', 'gasping for air', 'blue lips', 'wheezing severely',
+                
+                # Neurological emergencies
+                'stroke', 'unconscious', 'seizure', 'head injury', 'spinal injury',
+                'paralysis', 'can\'t move', 'slurred speech', 'confusion', 'loss of consciousness',
+                
+                # Trauma emergencies
+                'severe bleeding', 'heavy bleeding', 'blood loss', 'deep cut', 'stabbed',
+                'shot', 'gunshot', 'severe burn', 'third degree burn', 'explosion',
+                
+                # Poisoning/overdose
+                'overdose', 'poisoned', 'suicide attempt', 'drug overdose', 'chemical exposure',
+                
+                # Allergic reactions
+                'allergic reaction', 'anaphylaxis', 'swollen throat', 'hives all over',
+                
+                # Obstetric emergencies
+                'labor pains', 'water broke', 'pregnancy bleeding', 'miscarriage'
             ],
             'medium_priority': [
-                'fever', 'vomiting', 'diarrhea', 'pain', 'broken bone', 'cut',
-                'burn', 'fall', 'accident', 'bleeding', 'dizzy', 'nausea',
-                'headache', 'stomach pain', 'back pain', 'sprained'
+                # General pain and injuries
+                'severe pain', 'broken bone', 'fracture', 'sprained ankle', 'dislocated',
+                'fall', 'accident', 'cut', 'burn', 'bleeding', 'wound',
+                
+                # Infections and fever
+                'high fever', 'fever over 102', 'infection', 'severe headache',
+                'stiff neck', 'rash with fever',
+                
+                # Gastrointestinal
+                'severe vomiting', 'blood in vomit', 'severe diarrhea', 'dehydration',
+                'severe stomach pain', 'appendicitis symptoms',
+                
+                # Other concerning symptoms
+                'dizzy', 'fainting', 'nausea', 'severe headache', 'migraine',
+                'back pain', 'kidney pain', 'urinary problems'
             ],
             'low_priority': [
-                'cold', 'cough', 'minor cut', 'bruise', 'rash', 'sore throat',
-                'runny nose', 'minor headache', 'tired', 'fatigue'
+                'cold', 'cough', 'runny nose', 'sore throat', 'minor headache',
+                'tired', 'fatigue', 'minor cut', 'small bruise', 'rash',
+                'mild fever', 'upset stomach', 'constipation', 'minor ache'
             ]
         }
         
         self.police_keywords = {
             'high_priority': [
-                'robbery', 'burglary', 'assault', 'attack', 'shooting', 'stabbing',
-                'domestic violence', 'kidnapping', 'rape', 'murder', 'threat',
-                'weapon', 'gun', 'knife', 'violence', 'break in', 'breaking in'
+                # Violent crimes
+                'robbery', 'armed robbery', 'burglary', 'home invasion', 'break in', 'breaking in',
+                'assault', 'attack', 'beating', 'mugging', 'carjacking',
+                
+                # Weapons involved
+                'shooting', 'gunshot', 'stabbing', 'knife attack', 'weapon', 'gun', 'knife',
+                'armed', 'threatened with weapon', 'pistol', 'rifle',
+                
+                # Serious crimes
+                'kidnapping', 'abduction', 'rape', 'sexual assault', 'murder', 'homicide',
+                'domestic violence', 'child abuse', 'human trafficking',
+                
+                # Immediate threats
+                'threat to kill', 'death threat', 'bomb threat', 'terrorist', 'explosion',
+                'active shooter', 'hostage situation', 'gang violence',
+                
+                # Drug-related violence
+                'drug deal gone wrong', 'drug violence', 'dealer threatening'
             ],
             'medium_priority': [
-                'theft', 'stolen', 'vandalism', 'harassment', 'suspicious person',
-                'noise complaint', 'disturbance', 'fraud', 'scam', 'lost child'
+                'theft', 'stolen car', 'stolen property', 'pickpocket', 'shoplifting',
+                'vandalism', 'property damage', 'graffiti', 'broken windows',
+                'harassment', 'stalking', 'threatening behavior', 'suspicious person',
+                'noise complaint', 'disturbance', 'loud party', 'neighbor dispute',
+                'fraud', 'scam', 'identity theft', 'credit card fraud',
+                'lost child', 'missing person', 'runaway', 'trespassing'
             ],
             'low_priority': [
-                'parking violation', 'minor dispute', 'lost property', 'noise'
+                'parking violation', 'minor dispute', 'lost property', 'noise',
+                'littering', 'minor traffic violation', 'civil matter'
             ]
         }
         
         self.fire_keywords = {
             'high_priority': [
-                'fire', 'burning', 'smoke', 'explosion', 'gas leak', 'chemical spill',
-                'building collapse', 'trapped', 'can\'t escape'
+                # Active fires
+                'fire', 'house fire', 'building fire', 'forest fire', 'car fire',
+                'burning', 'flames', 'smoke everywhere', 'heavy smoke',
+                
+                # Explosions and hazards
+                'explosion', 'blast', 'gas explosion', 'chemical explosion',
+                'gas leak', 'propane leak', 'natural gas smell', 'chemical spill',
+                'toxic fumes', 'hazardous materials',
+                
+                # Structural emergencies
+                'building collapse', 'roof collapse', 'wall falling', 'structural damage',
+                'earthquake damage', 'flood damage',
+                
+                # Rescue situations
+                'trapped in fire', 'can\'t escape', 'people trapped', 'rescue needed',
+                'elevator stuck', 'confined space rescue'
             ],
             'medium_priority': [
-                'small fire', 'electrical problem', 'gas smell', 'smoke alarm'
+                'small fire', 'kitchen fire', 'electrical fire', 'electrical problem',
+                'sparks', 'overheating', 'burning smell', 'gas smell',
+                'smoke alarm going off', 'carbon monoxide alarm', 'water leak'
             ],
             'low_priority': [
-                'fire safety inspection', 'smoke detector'
+                'fire safety inspection', 'smoke detector battery', 'fire prevention',
+                'safety check', 'fire extinguisher check'
             ]
         }
         
@@ -71,7 +142,7 @@ class ParsingAgent:
             'phone': r'(?:phone|number|call me|contact)\s*(?:is|at)?\s*([\+\d\s\-\(\)]+)'
         }
 
-    def parse_emergency_input(self, user_input: str) -> Dict[str, Any]:
+    def parse_emergency_input(self, user_input: str, location_data: Dict[str, Any] = None) -> Dict[str, Any]:
         """Parse natural language emergency input into structured data"""
         logger.info(f"Parsing emergency input: {user_input}")
         
@@ -80,8 +151,8 @@ class ParsingAgent:
         # Determine emergency type and priority
         emergency_type, priority = self._classify_emergency(user_input_lower)
         
-        # Extract location
-        location = self._extract_location(user_input)
+        # Extract location (prioritize GPS data if available)
+        location = self._extract_location(user_input, location_data)
         
         # Extract personal information
         personal_info = self._extract_personal_info(user_input)
@@ -122,20 +193,24 @@ class ParsingAgent:
         return result
 
     def _classify_emergency(self, user_input: str) -> Tuple[str, str]:
-        """Classify the type of emergency and its priority"""
+        """Classify the type of emergency and its priority with advanced pattern recognition"""
         
-        # Check for medical emergency
-        medical_score = self._calculate_keyword_score(user_input, self.medical_keywords)
-        police_score = self._calculate_keyword_score(user_input, self.police_keywords)
-        fire_score = self._calculate_keyword_score(user_input, self.fire_keywords)
+        # Enhanced scoring with context analysis
+        medical_score = self._calculate_enhanced_score(user_input, self.medical_keywords, 'medical')
+        police_score = self._calculate_enhanced_score(user_input, self.police_keywords, 'police')
+        fire_score = self._calculate_enhanced_score(user_input, self.fire_keywords, 'fire')
+        
+        # Context-based adjustments
+        medical_score = self._apply_context_adjustments(user_input, medical_score, 'medical')
+        police_score = self._apply_context_adjustments(user_input, police_score, 'police')
+        fire_score = self._apply_context_adjustments(user_input, fire_score, 'fire')
         
         # Determine emergency type
         max_score = max(medical_score['total'], police_score['total'], fire_score['total'])
         
         if max_score == 0:
-            # Default to medical if no clear indicators
-            emergency_type = 'medical'
-            priority = 'low'
+            # Use intelligent fallback based on context clues
+            emergency_type, priority = self._intelligent_fallback_classification(user_input)
         elif medical_score['total'] == max_score:
             emergency_type = 'medical'
             priority = self._determine_priority(medical_score)
@@ -145,6 +220,87 @@ class ParsingAgent:
         else:
             emergency_type = 'fire'
             priority = self._determine_priority(fire_score)
+        
+        return emergency_type, priority
+
+    def _calculate_enhanced_score(self, user_input: str, keywords: Dict[str, List[str]], category: str) -> Dict[str, int]:
+        """Enhanced scoring with phrase matching and context"""
+        scores = {'high_priority': 0, 'medium_priority': 0, 'low_priority': 0}
+        
+        for priority_level, keyword_list in keywords.items():
+            for keyword in keyword_list:
+                # Exact phrase matching (higher weight)
+                if keyword in user_input:
+                    scores[priority_level] += 2
+                
+                # Partial word matching (lower weight)
+                keyword_words = keyword.split()
+                if len(keyword_words) > 1:
+                    word_matches = sum(1 for word in keyword_words if word in user_input)
+                    if word_matches >= len(keyword_words) * 0.7:  # 70% of words match
+                        scores[priority_level] += 1
+        
+        scores['total'] = sum(scores.values())
+        return scores
+
+    def _apply_context_adjustments(self, user_input: str, scores: Dict[str, int], category: str) -> Dict[str, int]:
+        """Apply context-based adjustments to improve accuracy"""
+        
+        # Urgency indicators
+        urgency_words = ['help', 'emergency', 'urgent', 'now', 'immediately', 'asap', 'hurry', '911', '1122']
+        urgency_count = sum(1 for word in urgency_words if word in user_input.lower())
+        
+        if urgency_count > 0:
+            scores['high_priority'] += urgency_count
+        
+        # Severity indicators
+        severity_words = ['severe', 'serious', 'critical', 'life threatening', 'dying', 'critical condition']
+        severity_count = sum(1 for word in severity_words if word in user_input.lower())
+        
+        if severity_count > 0:
+            scores['high_priority'] += severity_count * 2
+        
+        # Time-based urgency
+        time_urgent = ['right now', 'happening now', 'currently', 'at this moment']
+        if any(phrase in user_input.lower() for phrase in time_urgent):
+            scores['high_priority'] += 2
+        
+        # Multiple victim indicators
+        multiple_victims = ['multiple people', 'several people', 'many injured', 'mass casualty']
+        if any(phrase in user_input.lower() for phrase in multiple_victims):
+            scores['high_priority'] += 3
+        
+        # Age-based priority (children, elderly)
+        age_priority = ['child', 'baby', 'infant', 'elderly', 'old person', 'senior citizen']
+        if any(word in user_input.lower() for word in age_priority):
+            scores['high_priority'] += 1
+        
+        scores['total'] = sum(scores.values())
+        return scores
+
+    def _intelligent_fallback_classification(self, user_input: str) -> Tuple[str, str]:
+        """Intelligent fallback when no clear keywords match"""
+        
+        # Look for general emergency indicators
+        emergency_indicators = {
+            'medical': ['hurt', 'pain', 'sick', 'ill', 'injured', 'bleeding', 'unconscious', 'fell', 'accident'],
+            'police': ['crime', 'criminal', 'thief', 'violence', 'threat', 'danger', 'suspicious', 'illegal'],
+            'fire': ['smoke', 'burning', 'hot', 'explosion', 'gas', 'chemical', 'hazard']
+        }
+        
+        scores = {}
+        for category, indicators in emergency_indicators.items():
+            score = sum(1 for indicator in indicators if indicator in user_input.lower())
+            scores[category] = score
+        
+        if max(scores.values()) > 0:
+            emergency_type = max(scores, key=scores.get)
+            # Default to medium priority for fallback cases
+            priority = 'medium'
+        else:
+            # Ultimate fallback - assume medical with low priority
+            emergency_type = 'medical'
+            priority = 'low'
         
         return emergency_type, priority
 
@@ -169,8 +325,19 @@ class ParsingAgent:
         else:
             return 'low'
 
-    def _extract_location(self, user_input: str) -> str:
-        """Extract location from user input"""
+    def _extract_location(self, user_input: str, location_data: Dict[str, Any] = None) -> str:
+        """Extract location from user input, prioritizing GPS data"""
+        
+        # If GPS location is available, use it
+        if location_data:
+            if location_data.get('address'):
+                return location_data['address']
+            elif location_data.get('lat') and location_data.get('lng'):
+                lat, lng = location_data['lat'], location_data['lng']
+                # Determine Pakistani city based on coordinates
+                city = self._coordinates_to_city(lat, lng)
+                return f"{city} (GPS: {lat:.4f}, {lng:.4f})"
+        
         # Pakistani cities
         pakistani_cities = [
             'lahore', 'karachi', 'islamabad', 'rawalpindi', 'faisalabad',
@@ -179,7 +346,7 @@ class ParsingAgent:
         
         user_input_lower = user_input.lower()
         
-        # Check for Pakistani cities
+        # Check for Pakistani cities in text
         for city in pakistani_cities:
             if city in user_input_lower:
                 return city.title()
@@ -195,6 +362,35 @@ class ParsingAgent:
                     return location.title()
         
         return 'Lahore'  # Default location
+
+    def _coordinates_to_city(self, lat: float, lng: float) -> str:
+        """Determine Pakistani city from GPS coordinates"""
+        # Major Pakistani cities with approximate coordinates
+        cities = {
+            'Lahore': (31.5204, 74.3587),
+            'Karachi': (24.8607, 67.0011),
+            'Islamabad': (33.6844, 73.0479),
+            'Rawalpindi': (33.5651, 73.0169),
+            'Faisalabad': (31.4504, 73.1350),
+            'Multan': (30.1575, 71.5249),
+            'Peshawar': (34.0151, 71.5249),
+            'Quetta': (30.1798, 66.9750),
+            'Sialkot': (32.4945, 74.5229),
+            'Gujranwala': (32.1877, 74.1945)
+        }
+        
+        # Find closest city
+        min_distance = float('inf')
+        closest_city = 'Lahore'
+        
+        for city, (city_lat, city_lng) in cities.items():
+            # Simple distance calculation
+            distance = ((lat - city_lat) ** 2 + (lng - city_lng) ** 2) ** 0.5
+            if distance < min_distance:
+                min_distance = distance
+                closest_city = city
+        
+        return closest_city
 
     def _extract_personal_info(self, user_input: str) -> Dict[str, Any]:
         """Extract personal information from user input"""

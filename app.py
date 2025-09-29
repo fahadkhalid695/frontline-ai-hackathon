@@ -119,6 +119,7 @@ def parse_emergency_input():
     try:
         request_data = request.get_json() or {}
         user_input = request_data.get('user_input', '')
+        location_data = request_data.get('location_data')
         
         if not user_input:
             return jsonify({
@@ -127,9 +128,11 @@ def parse_emergency_input():
             }), 400
         
         logger.info(f"Parsing emergency input: {user_input}")
+        if location_data:
+            logger.info(f"Location data provided: {location_data}")
         
         # Parse the input using the parsing agent
-        parsed_result = parsing_agent.parse_emergency_input(user_input)
+        parsed_result = parsing_agent.parse_emergency_input(user_input, location_data)
         
         response = {
             'status': 'success',

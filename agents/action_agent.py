@@ -20,9 +20,39 @@ class ActionAgent:
         self.hospital_contacts = {
             'Jinnah Hospital Lahore': '042-99231441',
             'Services Hospital Lahore': '042-99212171',
+            'General Hospital Lahore': '042-99213185',
             'Aga Khan Hospital Karachi': '021-34864114',
             'Civil Hospital Karachi': '021-99215740',
-            'PIMS Islamabad': '051-9261170'
+            'Jinnah Postgraduate Medical Centre': '021-99261261',
+            'PIMS Islamabad': '051-9261170',
+            'Shifa International Hospital': '051-4603000',
+            'Pakistan Institute of Medical Sciences': '051-9261170'
+        }
+        
+        self.police_stations = {
+            'Lahore': {
+                'Model Town Police Station': '042-99203040',
+                'Gulberg Police Station': '042-35714444',
+                'Cantt Police Station': '042-36668243'
+            },
+            'Karachi': {
+                'Clifton Police Station': '021-35830439',
+                'Saddar Police Station': '021-32776666',
+                'Gulshan Police Station': '021-34924001'
+            },
+            'Islamabad': {
+                'Margalla Police Station': '051-9252594',
+                'Shalimar Police Station': '051-4435071',
+                'Aabpara Police Station': '051-9252594'
+            }
+        }
+        
+        self.fire_stations = {
+            'Lahore': '042-99258222',
+            'Karachi': '021-99332222', 
+            'Islamabad': '051-9252274',
+            'Rawalpindi': '051-9272404',
+            'Faisalabad': '041-9200016'
         }
 
     def execute_autonomous_actions(self, case_data: Dict[str, Any], agent_results: Dict[str, Any]) -> List[Dict[str, Any]]:
