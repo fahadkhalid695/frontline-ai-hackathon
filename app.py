@@ -15,6 +15,8 @@ from agents.guidance_agent import GuidanceAgent
 from agents.booking_agent import BookingAgent
 from agents.followup_agent import FollowupAgent
 from agents.equity_agent import EquityAgent
+from agents.parsing_agent import ParsingAgent
+from agents.action_agent import ActionAgent
 from utils.data_loader import DataLoader
 from utils.degraded_mode import SystemStatusChecker
 
@@ -25,6 +27,8 @@ CORS(app)  # Enable CORS for frontend
 # Initialize components
 data_loader = DataLoader()
 system_checker = SystemStatusChecker()
+parsing_agent = ParsingAgent()
+action_agent = ActionAgent()
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -105,6 +109,46 @@ def process_emergency():
         }
         return jsonify(error_response), 500
 
+@app.route('/api/parse-emergency', methods=['POST', 'OPTIONS'])
+def parse_emergency_input():
+    """Parse natural language emergency input"""
+    
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    try:
+        request_data = request.get_json() or {}
+        user_input = request_data.get('user_input', '')
+        
+        if not user_input:
+            return jsonify({
+                'status': 'error',
+                'message': 'No user input provided'
+            }), 400
+        
+        logger.info(f"Parsing emergency input: {user_input}")
+        
+        # Parse the input using the parsing agent
+        parsed_result = parsing_agent.parse_emergency_input(user_input)
+        
+        response = {
+            'status': 'success',
+            'timestamp': datetime.now().isoformat(),
+            **parsed_result
+        }
+        
+        logger.info(f"Parsing completed successfully")
+        return jsonify(response), 200
+        
+    except Exception as e:
+        logger.error(f"Error parsing emergency input: {str(e)}\n{traceback.format_exc()}")
+        error_response = {
+            'status': 'error',
+            'message': str(e),
+            'timestamp': datetime.now().isoformat()
+        }
+        return jsonify(error_response), 500
+
 def execute_triage(case_data, system_status):
     """Execute triage agent only"""
     agent = TriageAgent(data_loader)
@@ -173,6 +217,17 @@ def execute_full_workflow(case_data, system_status):
         equity_result = equity_agent.process(equity_data, system_status)
         results['equity'] = equity_result
         agent_trace.append('equity_agent')
+        
+        # 6. Action Agent - Execute autonomous actions
+        logger.info("Starting Action Agent...")
+        action_data = {**equity_data, **equity_result}
+        autonomous_actions = action_agent.execute_autonomous_actions(case_data, action_data)
+        action_summary = action_agent.generate_action_summary(autonomous_actions)
+        results['actions'] = {
+            'autonomous_actions': autonomous_actions,
+            'action_summary': action_summary
+        }
+        agent_trace.append('action_agent')
         
         # Combine all results
         combined_result = {}

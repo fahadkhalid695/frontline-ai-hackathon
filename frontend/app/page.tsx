@@ -19,9 +19,10 @@ import toast from 'react-hot-toast'
 import EmergencyForm from './components/EmergencyForm'
 import AgentProgress from './components/AgentProgress'
 import ResultsPanel from './components/ResultsPanel'
+import AgenticInterface from './components/AgenticInterface'
 
 export default function Home() {
-  const [currentStep, setCurrentStep] = useState<'form' | 'processing' | 'results'>('form')
+  const [currentStep, setCurrentStep] = useState<'agentic' | 'form' | 'processing' | 'results'>('agentic')
   const [emergencyData, setEmergencyData] = useState<any>(null)
   const [results, setResults] = useState<any>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -61,10 +62,19 @@ export default function Home() {
   }
 
   const resetForm = () => {
-    setCurrentStep('form')
+    setCurrentStep('agentic')
     setEmergencyData(null)
     setResults(null)
     setIsProcessing(false)
+  }
+
+  const handleAgenticResult = (result: any) => {
+    setResults(result)
+    setCurrentStep('results')
+  }
+
+  const switchToManualForm = () => {
+    setCurrentStep('form')
   }
 
   return (
@@ -85,8 +95,16 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>System Online</span>
+                <span>AI Assistant Online</span>
               </div>
+              {currentStep === 'agentic' && (
+                <button
+                  onClick={switchToManualForm}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Use Manual Form
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -126,6 +144,16 @@ export default function Home() {
         </motion.div>
 
         {/* Content based on current step */}
+        {currentStep === 'agentic' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <AgenticInterface onEmergencyProcessed={handleAgenticResult} />
+          </motion.div>
+        )}
+
         {currentStep === 'form' && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -133,6 +161,14 @@ export default function Home() {
             transition={{ duration: 0.3 }}
           >
             <EmergencyForm onSubmit={handleEmergencySubmit} />
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setCurrentStep('agentic')}
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                ← Back to AI Assistant
+              </button>
+            </div>
           </motion.div>
         )}
 
